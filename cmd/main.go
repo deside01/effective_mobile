@@ -7,7 +7,11 @@ import (
 	"time"
 
 	"github.com/deside01/effective_mobile/internal/config"
+	"github.com/deside01/effective_mobile/internal/database/db"
+	"github.com/deside01/effective_mobile/internal/handlers"
+	"github.com/deside01/effective_mobile/internal/repos"
 	"github.com/deside01/effective_mobile/internal/router"
+	"github.com/deside01/effective_mobile/internal/services"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,7 +27,11 @@ func main() {
 	}
 	defer dbpool.Close()
 
-	r := router.NewRouter()
+	repo := repos.NewSubscriptionRepo(db.New(dbpool))
+	svc := services.NewSubscriptionService(repo)
+	h := handlers.NewSubscriptionHandler(svc)
+
+	r := router.NewRouter(h)
 
 	srv := http.Server{
 		Addr:         cfg.HTTP.Addr,
