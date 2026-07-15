@@ -1,9 +1,9 @@
 package dto
 
 type SubscriptionBody struct {
-	ServiceName string `json:"service_name"`
-	Price       int    `json:"price"`
-	UserID      string `json:"user_id"`
-	SubDate     string `json:"sub_date"`
-	ExpDate     string `json:"exp_date"`
+	ServiceName string `json:"service_name,omitempty"`
+	Price       int    `json:"price,omitempty"`
+	UserID      string `json:"user_id,omitempty"`
+	SubDate     string `json:"sub_date,omitempty"`
+	ExpDate     string `json:"exp_date,omitempty"`
 }

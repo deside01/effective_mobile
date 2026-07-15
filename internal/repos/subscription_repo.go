@@ -21,3 +21,16 @@ func (sr *SubscriptionRepo) Create(ctx context.Context, params db.CreateSubscrip
 
 	return &sub, err
 }
+
+func (sr *SubscriptionRepo) GetByID(ctx context.Context, id int64) (*db.Subscription, error) {
+	sub, err := sr.repo.GetSubscriptionByID(ctx, id)
+	return &sub, err
+}
+
+func (sr *SubscriptionRepo) GetAll(ctx context.Context, params db.GetSubscriptionsPageParams) ([]db.Subscription, error) {
+	return sr.repo.GetSubscriptionsPage(ctx, params)
+}
+
+func (sr *SubscriptionRepo) UpdateByID(ctx context.Context, params db.UpdateSubscriptionByIDParams) error {
+	return sr.repo.UpdateSubscriptionByID(ctx, params)
+}

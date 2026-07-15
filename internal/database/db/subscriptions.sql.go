@@ -48,3 +48,115 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 	)
 	return i, err
 }
+
+const getSubscriptionByID = `-- name: GetSubscriptionByID :one
+SELECT
+    id,
+    service_name,
+    price,
+    user_id,
+    sub_date,
+    exp_date,
+    created_at,
+    updated_at
+FROM subscriptions
+WHERE id = $1
+`
+
+func (q *Queries) GetSubscriptionByID(ctx context.Context, id int64) (Subscription, error) {
+	row := q.db.QueryRow(ctx, getSubscriptionByID, id)
+	var i Subscription
+	err := row.Scan(
+		&i.ID,
+		&i.ServiceName,
+		&i.Price,
+		&i.UserID,
+		&i.SubDate,
+		&i.ExpDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getSubscriptionsPage = `-- name: GetSubscriptionsPage :many
+SELECT
+    id,
+    service_name,
+    price,
+    user_id,
+    sub_date,
+    exp_date,
+    created_at,
+    updated_at
+FROM subscriptions
+ORDER BY id DESC
+LIMIT $1
+OFFSET $2
+`
+
+type GetSubscriptionsPageParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) GetSubscriptionsPage(ctx context.Context, arg GetSubscriptionsPageParams) ([]Subscription, error) {
+	rows, err := q.db.Query(ctx, getSubscriptionsPage, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Subscription
+	for rows.Next() {
+		var i Subscription
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceName,
+			&i.Price,
+			&i.UserID,
+			&i.SubDate,
+			&i.ExpDate,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateSubscriptionByID = `-- name: UpdateSubscriptionByID :exec
+UPDATE subscriptions
+SET
+    service_name = COALESCE($1, service_name),
+    price = COALESCE($2, price),
+    sub_date = COALESCE($3, sub_date),
+    exp_date = COALESCE($4, exp_date),
+    updated_at = COALESCE($5, updated_at)
+WHERE id = $6
+`
+
+type UpdateSubscriptionByIDParams struct {
+	ServiceName pgtype.Text      `json:"service_name"`
+	Price       pgtype.Int4      `json:"price"`
+	SubDate     pgtype.Date      `json:"sub_date"`
+	ExpDate     pgtype.Date      `json:"exp_date"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+	ID          int64            `json:"id"`
+}
+
+func (q *Queries) UpdateSubscriptionByID(ctx context.Context, arg UpdateSubscriptionByIDParams) error {
+	_, err := q.db.Exec(ctx, updateSubscriptionByID,
+		arg.ServiceName,
+		arg.Price,
+		arg.SubDate,
+		arg.ExpDate,
+		arg.UpdatedAt,
+		arg.ID,
+	)
+	return err
+}
