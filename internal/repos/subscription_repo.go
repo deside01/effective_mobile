@@ -34,3 +34,7 @@ func (sr *SubscriptionRepo) GetAll(ctx context.Context, params db.GetSubscriptio
 func (sr *SubscriptionRepo) UpdateByID(ctx context.Context, params db.UpdateSubscriptionByIDParams) error {
 	return sr.repo.UpdateSubscriptionByID(ctx, params)
 }
+
+func (sr *SubscriptionRepo) DeleteByID(ctx context.Context, id int64) (int64, error) {
+	return sr.repo.DeleteSubscriptionByID(ctx, id)
+}

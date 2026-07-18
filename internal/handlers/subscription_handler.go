@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	errs "github.com/deside01/effective_mobile/internal/errors"
 	"github.com/deside01/effective_mobile/internal/handlers/dto"
 	"github.com/deside01/effective_mobile/internal/services"
 	"github.com/deside01/effective_mobile/internal/utils"
@@ -31,34 +33,39 @@ func (sh *SubscriptionHandler) CreateSubscription(w http.ResponseWriter, r *http
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&body); err != nil {
-		utils.Error(w, 401, fmt.Sprint("unable decode body: ", err))
+		utils.Error(w, http.StatusBadRequest, fmt.Sprint("unable to decode body: ", err))
 		return
 	}
 
 	sub, err := sh.svc.CreateSubscription(r.Context(), body)
 	if err != nil {
-		utils.Error(w, 500, err.Error())
+		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.JSON(w, 201, sub)
+	utils.JSON(w, http.StatusCreated, sub)
 }
 
 func (sh *SubscriptionHandler) GetSubscription(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.Error(w, 401, "invalid id")
+		utils.Error(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	sub, err := sh.svc.GetSubscriptionByID(r.Context(), int64(id))
+	sub, err := sh.svc.GetSubscriptionByID(r.Context(), id)
 	if err != nil {
-		utils.Error(w, 403, err.Error())
+		switch {
+		case errors.Is(err, errs.ErrNotFound):
+			utils.Error(w, http.StatusNotFound, err.Error())
+		default:
+			utils.Error(w, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
-	utils.JSON(w, 200, sub)
+	utils.JSON(w, http.StatusOK, sub)
 }
 
 func (sh *SubscriptionHandler) GetSubscriptionsPage(w http.ResponseWriter, r *http.Request) {
@@ -66,18 +73,18 @@ func (sh *SubscriptionHandler) GetSubscriptionsPage(w http.ResponseWriter, r *ht
 
 	subs, err := sh.svc.GetSubscriptionsPage(r.Context(), query)
 	if err != nil {
-		utils.Error(w, 500, err.Error())
+		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.JSON(w, 200, subs)
+	utils.JSON(w, http.StatusOK, subs)
 }
 
 func (sh *SubscriptionHandler) UpdateSubscription(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.Error(w, 401, "invalid id")
+		utils.Error(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
@@ -89,15 +96,37 @@ func (sh *SubscriptionHandler) UpdateSubscription(w http.ResponseWriter, r *http
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&body); err != nil {
-		utils.Error(w, 401, fmt.Sprint("unable decode body: ", err))
+		utils.Error(w, http.StatusBadRequest, fmt.Sprint("unable to decode body: ", err))
 		return
 	}
 
 	err = sh.svc.UpdateSubscriptionByID(r.Context(), id, body)
 	if err != nil {
-		utils.Error(w, 500, err.Error())
+		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.JSON(w, 204, "")
+	utils.JSON(w, http.StatusNoContent, "")
+}
+
+func (sh *SubscriptionHandler) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.Error(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	err = sh.svc.DeleteSubscriptionByID(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrNotFound):
+			utils.Error(w, http.StatusNotFound, err.Error())
+		default:
+			utils.Error(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	utils.JSON(w, http.StatusNoContent, "")
 }

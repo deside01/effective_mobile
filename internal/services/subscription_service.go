@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/deside01/effective_mobile/internal/database/db"
+	errs "github.com/deside01/effective_mobile/internal/errors"
 	"github.com/deside01/effective_mobile/internal/handlers/dto"
 	"github.com/deside01/effective_mobile/internal/repos"
 	"github.com/deside01/effective_mobile/internal/utils"
@@ -57,11 +58,11 @@ func (ss *SubscriptionSvc) CreateSubscription(ctx context.Context, body dto.Subs
 	})
 }
 
-func (ss *SubscriptionSvc) GetSubscriptionByID(ctx context.Context, id int64) (*db.Subscription, error) {
-	sub, err := ss.repo.GetByID(ctx, id)
+func (ss *SubscriptionSvc) GetSubscriptionByID(ctx context.Context, id int) (*db.Subscription, error) {
+	sub, err := ss.repo.GetByID(ctx, int64(id))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("not found")
+			return nil, fmt.Errorf("subscription %v: %w", id, errs.ErrNotFound)
 		}
 		return nil, err
 	}
@@ -82,6 +83,7 @@ func (ss *SubscriptionSvc) GetSubscriptionsPage(ctx context.Context, query url.V
 	if err != nil {
 		offset = 0
 	}
+
 	subs, err := ss.repo.GetAll(ctx, db.GetSubscriptionsPageParams{
 		Limit:  int32(limit),
 		Offset: int32(offset) * 10,
@@ -112,4 +114,17 @@ func (ss *SubscriptionSvc) UpdateSubscriptionByID(ctx context.Context, id int, b
 	}
 
 	return ss.repo.UpdateByID(ctx, params)
+}
+
+func (ss *SubscriptionSvc) DeleteSubscriptionByID(ctx context.Context, id int) error {
+	fetchedID, err := ss.repo.DeleteByID(ctx, int64(id))
+	if err != nil {
+		if fetchedID == 0 {
+			return fmt.Errorf("subscription %v: %w", id, errs.ErrNotFound)
+		}
+
+		return fmt.Errorf("subscription %v: %w", id, errs.ErrFailedQuery)
+	}
+
+	return nil
 }

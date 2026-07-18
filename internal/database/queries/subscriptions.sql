@@ -42,3 +42,8 @@ SET
     exp_date = COALESCE(sqlc.narg('exp_date'), exp_date),
     updated_at = COALESCE(sqlc.narg('updated_at'), updated_at)
 WHERE id = sqlc.arg('id');
+
+-- name: DeleteSubscriptionByID :one
+DELETE FROM subscriptions
+WHERE id = $1
+RETURNING id;

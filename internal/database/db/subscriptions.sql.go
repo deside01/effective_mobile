@@ -49,6 +49,19 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 	return i, err
 }
 
+const deleteSubscriptionByID = `-- name: DeleteSubscriptionByID :one
+DELETE FROM subscriptions
+WHERE id = $1
+RETURNING id
+`
+
+func (q *Queries) DeleteSubscriptionByID(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRow(ctx, deleteSubscriptionByID, id)
+	var id_2 int64
+	err := row.Scan(&id_2)
+	return id_2, err
+}
+
 const getSubscriptionByID = `-- name: GetSubscriptionByID :one
 SELECT
     id,

@@ -14,6 +14,7 @@ func NewRouter(sh *handlers.SubscriptionHandler) *chi.Mux {
 		r.Post("/subscriptions", sh.CreateSubscription)
 		r.Get("/subscriptions", sh.GetSubscriptionsPage)
 		r.Put("/subscriptions/{id}", sh.UpdateSubscription)
+		r.Delete("/subscriptions/{id}", sh.DeleteSubscription)
 	})
 
 	return r

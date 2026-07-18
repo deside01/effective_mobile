@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (Subscription, error)
+	DeleteSubscriptionByID(ctx context.Context, id int64) (int64, error)
 	GetSubscriptionByID(ctx context.Context, id int64) (Subscription, error)
 	GetSubscriptionsPage(ctx context.Context, arg GetSubscriptionsPageParams) ([]Subscription, error)
 	UpdateSubscriptionByID(ctx context.Context, arg UpdateSubscriptionByIDParams) error
