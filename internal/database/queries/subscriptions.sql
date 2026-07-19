@@ -47,3 +47,11 @@ WHERE id = sqlc.arg('id');
 DELETE FROM subscriptions
 WHERE id = $1
 RETURNING id;
+
+-- name: GetUserSummary :one
+SELECT COALESCE(SUM(price), 0)::integer AS total_cost
+FROM subscriptions
+WHERE user_id = $1
+  AND (sqlc.narg('service_name')::text IS NULL OR service_name = sqlc.narg('service_name'))
+  AND (sqlc.arg('sub_date')::date IS NULL OR sub_date >= sqlc.arg('sub_date'))
+  AND (sqlc.arg('exp_date')::date IS NULL OR exp_date <= sqlc.arg('exp_date'));

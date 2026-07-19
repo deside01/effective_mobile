@@ -130,3 +130,22 @@ func (sh *SubscriptionHandler) DeleteSubscription(w http.ResponseWriter, r *http
 
 	utils.JSON(w, http.StatusNoContent, "")
 }
+
+func (sh *SubscriptionHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	total_cost, err := sh.svc.GetUserSummary(r.Context(), query)
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrInvalidInput):
+			utils.Error(w, http.StatusBadRequest, err.Error())
+		default:
+			utils.Error(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	utils.JSON(w, http.StatusOK, map[string]int32{
+		"total_cost": total_cost,
+	})
+}

@@ -128,3 +128,22 @@ func (ss *SubscriptionSvc) DeleteSubscriptionByID(ctx context.Context, id int) e
 
 	return nil
 }
+
+func (ss *SubscriptionSvc) GetUserSummary(ctx context.Context, query url.Values) (int32, error) {
+	userID := utils.PGUUIDParse(query.Get("user_id"))
+	if !userID.Valid {
+		return 0, fmt.Errorf("user_id %v: %w", userID, errs.ErrInvalidInput)
+	}
+
+	total_cost, err := ss.repo.GetSummary(ctx, db.GetUserSummaryParams{
+		UserID:      userID,
+		ServiceName: utils.PGTextParse(query.Get("service_name")),
+		SubDate:     utils.PGDateParse(query.Get("sub_date")),
+		ExpDate:     utils.PGDateParse(query.Get("exp_date")),
+	})
+	if err != nil {
+		return 0, fmt.Errorf("user_id %v: %w", userID, err)
+	}
+
+	return total_cost, nil
+}

@@ -14,4 +14,5 @@ type SubscriptionService interface {
 	GetSubscriptionsPage(context.Context, url.Values) ([]db.Subscription, error)
 	UpdateSubscriptionByID(context.Context, int, dto.SubscriptionBody) error
 	DeleteSubscriptionByID(context.Context, int) error
+	GetUserSummary(context.Context, url.Values) (int32, error)
 }

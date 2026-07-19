@@ -12,4 +12,5 @@ type SubscriptionRepository interface {
 	GetAll(context.Context, db.GetSubscriptionsPageParams) ([]db.Subscription, error)
 	UpdateByID(context.Context, db.UpdateSubscriptionByIDParams) error
 	DeleteByID(context.Context, int64) (int64, error)
+	GetSummary(context.Context, db.GetUserSummaryParams) (int32, error)
 }

@@ -13,6 +13,7 @@ type Querier interface {
 	DeleteSubscriptionByID(ctx context.Context, id int64) (int64, error)
 	GetSubscriptionByID(ctx context.Context, id int64) (Subscription, error)
 	GetSubscriptionsPage(ctx context.Context, arg GetSubscriptionsPageParams) ([]Subscription, error)
+	GetUserSummary(ctx context.Context, arg GetUserSummaryParams) (int32, error)
 	UpdateSubscriptionByID(ctx context.Context, arg UpdateSubscriptionByIDParams) error
 }
 

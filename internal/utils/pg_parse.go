@@ -6,6 +6,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+func PGUUIDParse(s string) pgtype.UUID {
+	var uuid pgtype.UUID
+	uuid.Scan(s)
+
+	return uuid
+}
+
 func PGTextParse(s string) pgtype.Text {
 	return pgtype.Text{
 		String: s,

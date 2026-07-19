@@ -142,6 +142,34 @@ func (q *Queries) GetSubscriptionsPage(ctx context.Context, arg GetSubscriptions
 	return items, nil
 }
 
+const getUserSummary = `-- name: GetUserSummary :one
+SELECT COALESCE(SUM(price), 0)::integer AS total_cost
+FROM subscriptions
+WHERE user_id = $1
+  AND ($2::text IS NULL OR service_name = $2)
+  AND ($3::date IS NULL OR sub_date >= $3)
+  AND ($4::date IS NULL OR exp_date <= $4)
+`
+
+type GetUserSummaryParams struct {
+	UserID      pgtype.UUID `json:"user_id"`
+	ServiceName pgtype.Text `json:"service_name"`
+	SubDate     pgtype.Date `json:"sub_date"`
+	ExpDate     pgtype.Date `json:"exp_date"`
+}
+
+func (q *Queries) GetUserSummary(ctx context.Context, arg GetUserSummaryParams) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserSummary,
+		arg.UserID,
+		arg.ServiceName,
+		arg.SubDate,
+		arg.ExpDate,
+	)
+	var total_cost int32
+	err := row.Scan(&total_cost)
+	return total_cost, err
+}
+
 const updateSubscriptionByID = `-- name: UpdateSubscriptionByID :exec
 UPDATE subscriptions
 SET
